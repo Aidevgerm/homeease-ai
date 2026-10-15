@@ -1,0 +1,266 @@
+<!DOCTYPE html>  
+<html lang="de">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <title>HomeEase AI | Smarter Alltags- & Haushalts-Assistent</title>  
+  
+  <!-- Mobile & PWA Theme-Konfiguration -->  
+  <meta name="theme-color" content="#1c1917">  
+  <meta name="apple-mobile-web-app-capable" content="yes">  
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">  
+  <meta name="apple-mobile-web-app-title" content="HomeEase">  
+  
+  <!-- App-Logo für Browser-Tab und iOS Home-Bildschirm -->  
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231c1917'/><path d='M20 50 L50 20 L80 50 V80 H20 Z' fill='none' stroke='%23f43f5e' stroke-width='6' stroke-linejoin='round'/><circle cx='50' cy='55' r='8' fill='%23fb923c'/></svg>">  
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231c1917'/><path d='M20 50 L50 20 L80 50 V80 H20 Z' fill='none' stroke='%23f43f5e' stroke-width='6' stroke-linejoin='round'/><circle cx='50' cy='55' r='8' fill='%23fb923c'/></svg>">  
+  
+  <!-- PWA Manifest direkt im HTML eingebunden -->  
+  <link rel="manifest" href="data:application/manifest+json,{  
+    %22name%22:%22HomeEase%20AI%22,  
+    %22short_name%22:%22HomeEase%22,  
+    %22start_url%22:%22./index.html%22,  
+    %22display%22:%22standalone%22,  
+    %22background_color%22:%22%231c1917%22,  
+    %22theme_color%22:%22%23f43f5e%22  
+  }">  
+  
+  <link rel="stylesheet" href="style.css">  
+  <!-- Exklusives PayPal SDK (Empfänger: sven.dallwig@icloud.com) -->  
+  <script src="https://www.paypal.com/sdk/js?client-id=test&currency=EUR"></script>  
+</head>  
+<body>  
+  <div class="app-container">  
+    <header>  
+      <div class="header-top">  
+        <div class="header-left-btns">  
+          <button id="install-btn" class="secondary-btn" onclick="triggerAppInstall()">📲 App installieren</button>  
+          <!-- NEU: Button zum Teilen der App -->  
+          <button id="share-app-btn" class="secondary-btn" onclick="shareApp()">🔗 App teilen</button>  
+        </div>  
+        <button id="auth-btn" class="auth-btn" onclick="toggleAuthModal()">🔑 Anmelden</button>  
+      </div>  
+  
+      <!-- App Logo -->  
+      <div class="logo-wrapper">  
+        <svg class="app-logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">  
+          <defs>  
+            <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">  
+              <stop offset="0%" stop-color="#f43f5e" />  
+              <stop offset="50%" stop-color="#fb923c" />  
+              <stop offset="100%" stop-color="#facc15" />  
+            </linearGradient>  
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">  
+              <feGaussianBlur stdDeviation="6" result="blur" />  
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />  
+            </filter>  
+          </defs>  
+          <path d="M20 50 L50 20 L80 50 V80 H20 Z" fill="none" stroke="url(#logo-grad)" stroke-width="5" stroke-linejoin="round" filter="url(#glow)"/>  
+          <circle cx="50" cy="55" r="8" fill="#f43f5e"/>  
+        </svg>  
+        <div class="logo-text">  
+          <h1>HomeEase</h1>  
+          <span class="logo-badge">Life AI</span>  
+        </div>  
+      </div>  
+      <p>Kühlschrank-Resteverwerter, Abo-Retter & KI-Haushaltsplaner in einem.</p>  
+        
+      <div class="credits-badge" onclick="openPaywall()" title="Klicken, um Abos per PayPal freizuschalten">  
+        ⚡ Status: <span id="credit-count">3 Credits</span> <span class="upgrade-text">(PayPal Abo 👑)</span>  
+      </div>  
+    </header>  
+  
+    <main>  
+      <!-- Memberbereich -->  
+      <section id="member-dashboard" class="member-card hidden">  
+        <div class="member-header">  
+          <h3>🏡 Mein Haushalts-Cockpit <span id="vip-tag" class="vip-tag hidden">👑 PRO ACTIVE</span></h3>  
+          <button class="logout-btn" onclick="logoutUser()">Abmelden</button>  
+        </div>  
+        <p class="member-welcome">Willkommen zuhause, <strong id="user-display-name">User</strong>!</p>  
+        <div class="member-stats">  
+          <div class="stat-box">  
+            <span class="stat-label">Gesparte Zeit / Woche</span>  
+            <span class="stat-value">ca. 3.5 Std.</span>  
+          </div>  
+          <div class="stat-box">  
+            <span class="stat-label">Gesparte Lebensmittel</span>  
+            <span class="stat-value">~ 45 € / Mo</span>  
+          </div>  
+        </div>  
+      </section>  
+  
+      <!-- Haupt-Eingabe -->  
+      <section class="input-section">  
+        <div class="input-group">  
+          <label for="funktion">Was möchtest du erledigen?</label>  
+          <select id="funktion" onchange="updateForm()">  
+            <option value="rezept">Reste-Kochen (Rezept aus vorhandenen Zutaten)</option>  
+            <option value="abo">Abo-Finder & Kündigungs-Check</option>  
+            <option value="putzplan">KI-Wochenputzplan (Fair verteilt)</option>  
+            <option value="einkaufszettel">👑 PRO: Automatischer Wochen-Einkaufszettel</option>  
+            <option value="kuendigung_pdf">👑 PRO: Rechtssicheres Kündigungsschreiben</option>  
+          </select>  
+        </div>  
+  
+        <div class="input-group" id="input-1-group">  
+          <label id="input-1-label" for="input-1">Zutaten im Kühlschrank / Vorrat:</label>  
+          <input type="text" id="input-1" placeholder="z. B. 2 Eier, Nudeln, Brokkoli, etwas Sahne">  
+        </div>  
+  
+        <div class="input-group" id="input-2-group">  
+          <label id="input-2-label" for="input-2">Zusatz-Wunsch (Zubereitungszeit / Diät):</label>  
+          <input type="text" id="input-2" placeholder="z. B. Max. 15 Min, vegetarisch">  
+        </div>  
+  
+        <button id="generate-btn" onclick="generateLifeSolution()">Vorschlag / Plan Generieren</button>  
+      </section>  
+  
+      <!-- Ausgabe -->  
+      <section class="output-section">  
+        <div class="output-header">  
+          <h2>Dein persönlicher KI-Ergebnis-Plan:</h2>  
+          <span id="model-tag" class="model-tag">HomeEase Engine</span>  
+        </div>  
+        <div id="output-box" class="output-box">  
+          Wähle oben eine Funktion und gib deine Details ein...  
+        </div>  
+        <div class="action-buttons">  
+          <button id="copy-btn" onclick="copyToClipboard()" style="display: none;">📋 Kopieren</button>  
+          <button id="share-btn" onclick="shareContent()" style="display: none;">📲 Ergebnis Teilen</button>  
+          <button id="pro-export-btn" onclick="exportProPdf()" class="pro-btn" style="display: none;">👑 PDF Exportieren</button>  
+        </div>  
+      </section>  
+  
+      <!-- Paywall mit Abos (Rein über PayPal) -->  
+      <section id="paywall" class="paywall hidden">  
+        <h3>👑 HomeEase Premium freischalten</h3>  
+        <p class="trial-banner">🎁 <strong>3 Tage kostenlos testen</strong> – danach wahlweise 59,99 €/Jahr oder 14,99 €/Monat.</p>  
+  
+        <div class="pro-features-overview">  
+          <h4>Vorteile für Abonnenten:</h4>  
+          <ul>  
+            <li>✨ <strong>Unbegrenzte</strong> Rezept- & Haushaltsgenerierungen</li>  
+            <li>🛒 <strong>Wochen-Einkaufszettel:</strong> Automatisch aus Menüplänen generiert</li>  
+            <li>📄 <strong>PDF-Export & Kündigungsschreiben:</strong> Für Verträge & Abos</li>  
+            <li>⚡ <strong>VIP-Support & Prioritäts-KI:</strong> Schnellste Ausführungszeit</li>  
+          </ul>  
+        </div>  
+  
+        <div class="pricing-grid">  
+          <div class="price-card featured selected" id="plan-yearly" onclick="selectPlan('yearly', 59.99)">  
+            <span class="save-badge">🔥 67% SPAREN</span>  
+            <h4>Jahres-Pass</h4>  
+            <div class="price">59,99 € <span>/ Jahr</span></div>  
+            <p class="price-sub">Entspricht ca. 4,99 € / Monat</p>  
+            <ul class="plan-features">  
+              <li>✅ Alle Pro-Funktionen enthalten</li>  
+              <li>✅ 3 Tage kostenlose Testphase</li>  
+              <li>✅ Maximale Ersparnis im Jahr</li>  
+            </ul>  
+          </div>  
+  
+          <div class="price-card" id="plan-monthly" onclick="selectPlan('monthly', 14.99)">  
+            <h4>Monats-Pass</h4>  
+            <div class="price">14,99 € <span>/ Monat</span></div>  
+            <p class="price-sub">Monatlich kündbar</p>  
+            <ul class="plan-features">  
+              <li>✅ Alle Pro-Funktionen enthalten</li>  
+              <li>✅ 3 Tage kostenlose Testphase</li>  
+              <li>✅ Maximale Flexibilität</li>  
+            </ul>  
+          </div>  
+        </div>  
+  
+        <p class="paypal-info">Bezahlung exklusiv über PayPal (Empfänger: <em>sven.dallwig@icloud.com</em>):</p>  
+        <div id="paypal-button-container"></div>  
+      </section>  
+  
+      <!-- Kundenbewertungen -->  
+      <section class="reviews-section">  
+        <h3>Erfahrungen von Familien & Haushalten</h3>  
+        <div class="reviews-grid">  
+          <div class="review-card">  
+            <div class="stars">⭐⭐⭐⭐⭐</div>  
+            <p>"Der Pro-Einkaufszettel und die Kündigungsfunktion haben mir schon im ersten Monat weit über 100 Euro gespart."</p>  
+            <span class="reviewer">- Laura M., 2-fach Mama</span>  
+          </div>  
+          <div class="review-card">  
+            <div class="stars">⭐⭐⭐⭐⭐</div>  
+            <p>"Der PDF-Export für den Putzplan hängt jetzt direkt an unserem Kühlschrank. Geniale App!"</p>  
+            <span class="reviewer">- Thomas & Sarah, WG</span>  
+          </div>  
+        </div>  
+      </section>  
+  
+      <!-- Installations-Anleitung -->  
+      <section id="install-section" class="install-guide">  
+        <h3>📲 Als Mobile App auf dem Smartphone installieren</h3>  
+        <div class="install-steps">  
+          <div class="install-card">  
+            <h4>🍎 iOS (Safari)</h4>  
+            <ol>  
+              <li>Tippe unten im Browser auf das <strong>Teilen-Symbol</strong> (Quadrat mit Pfeil).</li>  
+              <li>Scrolle nach unten und wähle <strong>„Zum Home-Bildschirm“</strong>.</li>  
+            </ol>  
+          </div>  
+          <div class="install-card">  
+            <h4>🤖 Android (Chrome)</h4>  
+            <ol>  
+              <li>Tippe oben auf den Button <strong>„Als App installieren“</strong> oder oben rechts im Menü auf die <strong>3 Punkte</strong>.</li>  
+              <li>Wähle <strong>„App installieren“</strong>.</li>  
+            </ol>  
+          </div>  
+        </div>  
+      </section>  
+    </main>  
+  </div>  
+  
+  <!-- Modal -->  
+  <div id="auth-modal" class="modal hidden">  
+    <div class="modal-content">  
+      <span class="close-modal" onclick="toggleAuthModal()">&times;</span>  
+      <h2 id="modal-title">HomeEase Login</h2>  
+      <p class="modal-sub" id="modal-sub">Melde dich an, um deine Rezepte und Pläne zu sichern.</p>  
+        
+      <form onsubmit="handleAuth(event)">  
+        <div class="input-group" id="name-group" style="display: none;">  
+          <label for="auth-name">Name / Vorname:</label>  
+          <input type="text" id="auth-name" placeholder="Laura">  
+        </div>  
+        <div class="input-group">  
+          <label for="auth-email">E-Mail-Adresse:</label>  
+          <input type="email" id="auth-email" placeholder="deine@email.de" required>  
+        </div>  
+        <div class="input-group">  
+          <label for="auth-password">Passwort:</label>  
+          <input type="password" id="auth-password" placeholder="••••••••" required>  
+        </div>  
+        <button type="submit" class="auth-submit-btn" id="modal-submit-btn">Anmelden</button>  
+      </form>  
+        
+      <div class="modal-toggle">  
+        <span id="toggle-auth-text">Neu hier? <a href="#" onclick="switchAuthMode(event)">Jetzt kostenfrei registrieren</a></span>  
+      </div>  
+    </div>  
+  </div>  
+  
+  <!-- Script Funktion für App teilen -->  
+  <script>  
+    function shareApp() {  
+      if (navigator.share) {  
+        navigator.share({  
+          title: 'HomeEase AI',  
+          text: 'Schau dir mal HomeEase AI an – den genialen Haushalts- und Resteverwerter-Assistenten!',  
+          url: window.location.href  
+        }).catch((error) => console.log('Fehler beim Teilen:', error));  
+      } else {  
+        navigator.clipboard.writeText(window.location.href);  
+        alert("App-Link in Zwischenablage kopiert! Du kannst ihn jetzt per WhatsApp oder Nachricht teilen.");  
+      }  
+    }  
+  </script>  
+  
+  <script src="script.js"></script>  
+</body>  
+</html>  
